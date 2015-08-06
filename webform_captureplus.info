@@ -1,0 +1,5 @@
+name = Webform Capture+
+description = Provides Capture+ integration for webform components.
+core = 7.x
+
+dependencies[] = webform
