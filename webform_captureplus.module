@@ -76,50 +76,136 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $called_forms[] = $nid;
     }
 
-    // Get the components.
-    $sql = "SELECT * FROM {webform_component} where nid = :nid";
-    $result = db_query($sql, array(':nid' => $nid));
-    while ($row = $result->fetchAssoc()) {
-      $rows[$row['cid']] = $row;
-    }
-    foreach ($rows as $row) {
-      // Generate from webform.
-    }
+    $settings = variable_get('webform_captureplus_settings_' . $nid, array());
 
-    //can't add javascript in this function or it will not be added if the form is built from cache.  Need to run "after_build" function
-    $form['#after_build'][] = 'webform_captureplus_add_js';
-    // @todo: replace with settings form values.
-    $fields = array(
-      array('element' => 'submitted[company]', 'field' => 'Company', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE),
-      array('element' => 'submitted[department]', 'field' => 'Department', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE),
-      array('element' => 'submitted[address_line_1]', 'field' => 'Line1', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE),
-      array('element' => 'submitted[address_line_2]', 'field' => 'Line2', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE),
-      array('element' => 'submitted[city]', 'field' => 'City', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE),
-      array('element' => 'submitted[postcode]', 'field' => 'PostalCode', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_DEFAULT),
-      array('element' => 'submitted[country]', 'field' => 'Country', 'mode' => WEBFORM_CAPTUREPLUS_FIELD_MODE_COUNTRY),
-    );
+    if (!empty($settings)) {
+      //can't add javascript in this function or it will not be added if the
+      // form is built from cache.  Need to run "after_build" function
+      $form['#after_build'][] = 'webform_captureplus_add_js';
 
-    $js_settings = array(
-      'setCursor' => TRUE,
-      'countries' => (object) array('codesList' => 'GBR'),
-      'list' => (object) array('width' => 590, 'height' => 200),
-      'bar' => (object) array('visible' => FALSE),
-      'culture' => 'EN-GB',
-      'fields' => $fields,
-      'key' => variable_get('capture_plus_key', '')
-    );
-    //store JavaScript variable for the webform_captureplus_add_js function
-    $form['#webform_captureplus_js'] = array('webform_captureplus_' . $form_id => $js_settings);
+      // get the element names.
+      $elements_name = array();
+      $name = array();
+      _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
+
+      foreach ($settings as $cid => $field_settings) {
+        $fields[] = array(
+          'element' => $elements_name[$cid],
+          'field' => $field_settings['field'],
+          // Capture+ expects mode as integer.
+          'mode' => $field_settings['mode'],
+        );
+      }
+
+
+      $field_group['collection_address'] = array (
+        array (
+          'element' => 'submitted[collection_address][search_address]',
+          'field' => '',
+          'mode' => 1,
+        ),
+        array (
+          'element' => 'submitted[collection_address][company_name]',
+          'field' => 'Company',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[collection_address][collection_address_1]',
+          'field' => 'Line1',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[collection_address][collection_address_2]',
+          'field' => 'Line2',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[collection_address][city_or_town]',
+          'field' => 'City',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[collection_address][postcode]',
+          'field' => 'PostalCode',
+          'mode' => 2,
+        ),
+      );
+      $field_group['invoice_address'] = array (
+        array (
+          'element' => 'submitted[invoice_address][invoice_contact_name]',
+          'field' => 'Company',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[invoice_address][invoice_address_1]',
+          'field' => 'Line1',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[invoice_address][invoice_address_2]',
+          'field' => 'Line2',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[invoice_address][invoice_city_or_town]',
+          'field' => 'City',
+          'mode' => 2,
+        ),
+        array (
+          'element' => 'submitted[invoice_address][invoice_postcode]',
+          'field' => 'PostalCode',
+          'mode' => 3,
+        ),
+      );
+
+      foreach ($field_group as $key => $fields) {
+        if (!empty($fields)) {
+          $js_settings[$key] = array(
+            'setCursor' => TRUE,
+            'countries' => (object) array('codesList' => 'GBR'),
+            'list' => (object) array('width' => 590, 'height' => 200),
+            'bar' => (object) array('visible' => FALSE),
+            'culture' => 'EN-GB',
+            'fields' => $fields,
+            'key' => variable_get('capture_plus_key'),
+          );
+        }
+      }
+        //store JavaScript variable for the webform_captureplus_add_js function
+        $form['#webform_captureplus_js'] = array('webform_captureplus_' . $form_id => $js_settings);
+    }
   }
 }
 
-
+/**
+ * Helper to get element names.
+ */
+function _webform_captureplus_get_elements_name($components, &$names, &$name) {
+  $child = element_children($components);
+  if (!empty($child)) {
+    foreach ($child as $component) {
+      $name[] = $component;
+      _webform_captureplus_get_elements_name($components[$component], $names, $name);
+      array_pop($name);
+    }
+  }
+  else {
+    if (isset($components['#webform_component']['cid']) && !empty($name)) {
+      $names[$components['#webform_component']['cid']] = 'submitted[' . implode('][', $name) . ']';
+    }
+  }
+}
 /**
  * Implements hook_form_FORM_ID_alter().
  */
 function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_state, $form_id) {
   module_load_include('inc', 'webform_captureplus', 'includes/admin');
   $capture_plus_version = variable_get('webform_captureplus_version', '3.20');
+
+  $fields = webform_captureplus_get_field_mappings();
+  $field_options = array_combine($fields, $fields);
+  ksort($field_options);
+
   $form['captureplus'] = array(
     '#type' => 'fieldset',
     '#title' => t('Capture+ settings'),
@@ -143,11 +229,12 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
   $form['captureplus']['webform_captureplus_allowed_fields'] = array(
     '#title' => t('Allowed fields'),
     '#type' => 'checkboxes',
-    '#options' => webform_captureplus_get_field_mappings(),
+    '#options' => $field_options,
     '#default_value' => variable_get('webform_captureplus_allowed_fields', array()),
     '#description' => t('Allowed fields to map in webform. Check <a href="!link">Capture+ documentation</a> for more details.', array('!link' => 'http://www.pcapredict.com/support/webservice/captureplus/interactive/retrieve/' . $capture_plus_version . '/')),
   );
 }
+
 /**
  * Function run #after_build on webform.  This ensures that Javascript is added even if form is built from cache.
  * @param array $form

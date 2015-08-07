@@ -47,7 +47,8 @@ function webform_captureplus_form($form, $form_state, $node) {
   );
 
   $options = array();
-  $captureplus_fields = webform_captureplus_get_field_mappings();
+  $captureplus_fields = variable_get('webform_captureplus_allowed_fields', array());
+
   $mode_options = array(
     WEBFORM_CAPTUREPLUS_FIELD_MODE_DEFAULT => 'Default',
     WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE => 'Populate',
@@ -56,7 +57,11 @@ function webform_captureplus_form($form, $form_state, $node) {
     WEBFORM_CAPTUREPLUS_FIELD_MODE_PRESERVE => 'Preserve',
     WEBFORM_CAPTUREPLUS_FIELD_MODE_SEARCH => 'Search',
   );
+  $settings = variable_get('webform_captureplus_settings_' . $node->nid, array());
+  $captureplus_group = variable_get('webform_captureplus_group_' . $node->nid, array('default' => 'default'));
+
   foreach ($node->webform['components'] as $cid => $component) {
+    $default_values = isset($settings[$cid]) ? $settings[$cid] : array('field' => NULL, 'mode' => NULL);
     $options[$cid] = check_plain($component['name']);
     $form['components'][$cid]['cid'] = array(
       '#type' => 'hidden',
@@ -66,23 +71,50 @@ function webform_captureplus_form($form, $form_state, $node) {
       '#type' => 'hidden',
       '#default_value' => $component['pid'],
     );
-    $form['components'][$cid]['captureplus_field'] = array(
+    $form['components'][$cid]['group'] = array(
+      '#type' => 'select',
+      '#title' => t('Capture+ group'),
+      '#default_value' => $default_values['group'],
+      '#options' => $captureplus_group,
+      '#empty_option' => t('Select'),
+      '#empty_value' => NULL,
+    );
+    $form['components'][$cid]['field'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ field'),
-      // '#default_value' => '',
-      '#options' => array_combine($captureplus_fields, $captureplus_fields),
+      '#default_value' => $default_values['field'],
+      '#options' => array_filter($captureplus_fields),
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
     $form['components'][$cid]['mode'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ mode'),
-      // '#default_value' => '',
+      '#default_value' => $default_values['mode'],
       '#options' => $mode_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
   }
+
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['settings']['key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API key'),
+    '#description' => t('API key from <a href="!url">Capture+</a>', array('!url' => 'http://www.postcodeanywhere.co.uk')),
+    '#default_value' => isset($node->webform['captureplus']['key']) ?: NULL
+  );
+  $form['settings']['setCursor'] = array(
+    '#type' => 'checbox',
+    '#title' => t('Replace search box text on focust'),
+    '#description' => t('Updates the input field with the current search text.'),
+    '#default_value' => isset($settings['key']) ?: NULL
+  );
 
   $form['actions'] = array(
     '#type' => 'actions',
@@ -116,7 +148,8 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
   // Remove individual titles from the required and weight fields.
   unset($form['components'][$cid]['required']['#title']);
   unset($form['components'][$cid]['pid']['#title']);
-  unset($form['components'][$cid]['captureplus_field']['#title']);
+  unset($form['components'][$cid]['group']['#title']);
+  unset($form['components'][$cid]['field']['#title']);
   unset($form['components'][$cid]['mode']['#title']);
 
   // Add special classes for weight and parent fields.
@@ -128,15 +161,23 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
   for ($n = 1; $n <= $level; $n++) {
     $indents .= '<div class="indentation">&nbsp;</div>';
   }
-
-  // Add each component to a table row.
   $row_data = array(
     array('data' => $indents . filter_xss($component['name']), 'class' => array('webform-component-name')),
-    array('data' => drupal_render($form['components'][$cid]['captureplus_field']), 'class' => array('select')),
-    array('data' => drupal_render($form['components'][$cid]['mode']), 'class' => array('select')),
-
   );
-
+  if ($component['type'] == 'fieldset') {
+    unset($form['components'][$cid]['group']);
+    unset($form['components'][$cid]['field']);
+    unset($form['components'][$cid]['mode']);
+    $row_data[] = array('data' => '');
+    $row_data[] = array('data' => '');
+    $row_data[] = array('data' => '');
+  }
+  else {
+    // Add each component to a table row.
+    $row_data[] = array('data' => drupal_render($form['components'][$cid]['group']), 'class' => array('select'));
+    $row_data[] = array('data' => drupal_render($form['components'][$cid]['field']), 'class' => array('select'));
+    $row_data[] = array('data' => drupal_render($form['components'][$cid]['mode']), 'class' => array('select'));
+  }
   $rows[] = array('data' => $row_data, 'class' => array(), 'data-cid' => $cid);
   if (isset($component['children']) && is_array($component['children'])) {
     foreach ($component['children'] as $cid => $component) {
@@ -184,52 +225,23 @@ function webform_captureplus_form_validate($form, &$form_state) {
 function webform_captureplus_form_submit($form, &$form_state) {
   $node = node_load($form_state['values']['nid']);
 
-  // Update all required and weight values.
-  $changes = FALSE;
-  foreach ($node->webform['components'] as $cid => $component) {
-    if ($component['pid'] != $form_state['values']['components'][$cid]['pid'] || $component['weight'] != $form_state['values']['components'][$cid]['weight'] || $component['required'] != $form_state['values']['components'][$cid]['required']) {
-      $changes = TRUE;
-      $node->webform['components'][$cid]['weight'] = $form_state['values']['components'][$cid]['weight'];
-      $node->webform['components'][$cid]['required'] = $form_state['values']['components'][$cid]['required'];
-      $node->webform['components'][$cid]['pid'] = $form_state['values']['components'][$cid]['pid'];
+  foreach ($form_state['values']['components'] as $cid => $component) {
+    if (!empty($component['field']) && !empty($component['mode'])) {
+      $settings[$component['cid']] = array(
+        'field' => $component['field'],
+        'mode' => $component['mode'],
+      );
     }
   }
+  $storage_key = 'webform_captureplus_settings_' . $node->nid;
 
-  if ($changes) {
-    node_save($node);
+  // Clean existing settings.
+  variable_del($storage_key);
+  if (!empty($settings)) {
+    variable_set($storage_key, $settings);
   }
 
-  drupal_set_message(t('The component positions and required values have been updated.'));
-}
-
-
-function webform_captureplus_global_form($form, &$form_state, $node) {
-  $form['#node'] = $node;
-  $form['key'] = array(
-    '#type' => 'textfield',
-    '#title' => t('API key'),
-    '#description' => t('API key from <a href="!url">Capture+</a>', array('!url' => 'http://www.postcodeanywhere.co.uk')),
-    '#default_value' => isset($node->webform['captureplus']['key']) ?: NULL
-  );
-  
-  $form['actions'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  return $form;
-}
-
-
-/**
- * @param $form
- * @param $form_state
- * @throws \Exception
- */
-function webform_captureplus_global_form_submit($form, &$form_state) {
-  $node = $form['#node'];
-  $node->webform['captureplus']['key'] = $form_state['values']['key'];
-  node_save($node);
-  drupal_set_message(t('Capture+ settings for %title saved.', array('%title' => $node->title)));
+  drupal_set_message(t('The settings have been updated.'));
 }
 
 /**
