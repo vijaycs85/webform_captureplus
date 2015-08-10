@@ -81,7 +81,7 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $name = array();
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
       $field_group = $settings->getFieldsByGroup($elements_name);
-      $config = $settings->getConfigAsArray() + array('key' => variable_get('capture_plus_key', 'CC85-WF93-EN79-HU91'));
+      $config = $settings->getConfigAsArray() + array('key' => variable_get('capture_plus_key', NULL));
       foreach ($field_group as $key => $fields) {
         if (!empty($fields)) {
           $js_settings[$key] = array(
