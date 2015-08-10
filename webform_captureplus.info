@@ -3,3 +3,5 @@ description = Provides Capture+ integration for webform components.
 core = 7.x
 
 dependencies[] = webform
+
+files[] = includes/webform_captureplus.class.inc

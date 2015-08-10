@@ -46,22 +46,73 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#value' => $node->nid,
   );
 
+  $settings = WebformCapturePlusSettings::createFromNid($node->nid);
+
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['settings']['key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API key'),
+    '#description' => t('API key from <a href="!url">Capture+</a>. Leave it blank to use global key.', array('!url' => 'http://www.postcodeanywhere.co.uk')),
+    '#default_value' => isset($node->webform['captureplus']['key']) ?: NULL
+  );
+  $form['settings']['set_cursor'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Replace search box text on focus'),
+    '#description' => t('Updates the input field with the current search text.'),
+    '#default_value' => $settings->getConfigByName('set_cursor', TRUE),
+  );
+  $form['settings']['countries'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Countries'),
+    '#description' => t('Countries to allow Capture+ lookup.'),
+    '#default_value' => $settings->getConfigByName('countries', 'GBR'),
+    // @todo: add country codes.
+    //'#options' => array(),
+  );
+  $form['settings']['bar_visible'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show country bar'),
+    '#description' => t('Country selection bar on Capture+ lookup autocomplete box footer.'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#default_value' => $settings->getConfigByName('bar_visible', FALSE),
+  );
+  $form['settings']['culture'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Language'),
+    '#description' => t('The address suggestion language.'),
+    '#default_value' => $settings->getConfigByName('culture', 'EN-GB'),
+    '#size' => 10,
+    '#maxlength' => 10,
+  );
+  $form['settings']['list_width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width'),
+    '#description' => t('Width of Capture+ lookup autocomplete box.'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#default_value' =>  $settings->getConfigByName('list_width', 600),
+  );
+  $form['settings']['list_height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Height'),
+    '#description' => t('Height of Capture+ lookup autocomplete box.'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#default_value' =>  $settings->getConfigByName('list_height', 300),
+  );
+
   $options = array();
   $captureplus_fields = variable_get('webform_captureplus_allowed_fields', array());
-
-  $mode_options = array(
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_DEFAULT => 'Default',
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE => 'Populate',
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_COUNTRY => 'Country',
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_NONE => 'None',
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_PRESERVE => 'Preserve',
-    WEBFORM_CAPTUREPLUS_FIELD_MODE_SEARCH => 'Search',
-  );
-  $settings = variable_get('webform_captureplus_settings_' . $node->nid, array());
-  $captureplus_group = variable_get('webform_captureplus_group_' . $node->nid, array('default' => 'default'));
+  $mode_options = WebformCapturePlusSettings::getModeOptions();
+  $group_options = WebformCapturePlusSettings::getGroupOptions();
 
   foreach ($node->webform['components'] as $cid => $component) {
-    $default_values = isset($settings[$cid]) ? $settings[$cid] : array('field' => NULL, 'mode' => NULL);
     $options[$cid] = check_plain($component['name']);
     $form['components'][$cid]['cid'] = array(
       '#type' => 'hidden',
@@ -74,15 +125,15 @@ function webform_captureplus_form($form, $form_state, $node) {
     $form['components'][$cid]['group'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ group'),
-      '#default_value' => $default_values['group'],
-      '#options' => $captureplus_group,
+      '#default_value' => $settings->getComponentGroupById($cid),
+      '#options' => $group_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
     $form['components'][$cid]['field'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ field'),
-      '#default_value' => $default_values['field'],
+      '#default_value' => $settings->getComponentFieldById($cid),
       '#options' => array_filter($captureplus_fields),
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
@@ -90,31 +141,30 @@ function webform_captureplus_form($form, $form_state, $node) {
     $form['components'][$cid]['mode'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ mode'),
-      '#default_value' => $default_values['mode'],
+      '#default_value' => $settings->getComponentModeById($cid),
       '#options' => $mode_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
   }
+  $mode_links = array(
+    '<strong>Default</strong>: Uses the field as search + populate field.',
+    '<strong>Search</strong>: Uses the field ONLY for search.',
+    '<strong>Populate</strong>: Uses the field ONLY for populate value of mapped Capture+ field.',
+    '<strong>Preserve</strong>: Keeps the field value, if it is prefilled',
+    '<strong>None</strong>: No Capture+ field mapping.',
+  );
+  $mode_list = theme('item_list', array('items' => $mode_links));
+  $links = array(
+    '<strong>Group</strong>: Group allows to create multiple Capture+ look up elements in same form.',
+    '<strong>Capture+ field</strong>: Capture+ search result provides set of fields. Please check <a href="!manual_link">documentation</a> for all available fields. The options can be changed from <a href="!settings">webform settings</a> page',
+    '<strong>Mode</strong>: Defines how the fields behaviour. Allowed options are:<br />' . $mode_list,
+  );
+  $form['components']['notes'] = array(
+    '#type' => 'markup',
+    '#markup' => theme('item_list', array('items' => $links, 'title' => t('Notes'))),
+  );
 
-  $form['settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['settings']['key'] = array(
-    '#type' => 'textfield',
-    '#title' => t('API key'),
-    '#description' => t('API key from <a href="!url">Capture+</a>', array('!url' => 'http://www.postcodeanywhere.co.uk')),
-    '#default_value' => isset($node->webform['captureplus']['key']) ?: NULL
-  );
-  $form['settings']['setCursor'] = array(
-    '#type' => 'checbox',
-    '#title' => t('Replace search box text on focust'),
-    '#description' => t('Updates the input field with the current search text.'),
-    '#default_value' => isset($settings['key']) ?: NULL
-  );
 
   $form['actions'] = array(
     '#type' => 'actions',
@@ -224,15 +274,18 @@ function webform_captureplus_form_validate($form, &$form_state) {
  */
 function webform_captureplus_form_submit($form, &$form_state) {
   $node = node_load($form_state['values']['nid']);
-
+  $fields = array();
   foreach ($form_state['values']['components'] as $cid => $component) {
     if (!empty($component['field']) && !empty($component['mode'])) {
-      $settings[$component['cid']] = array(
+      $fields[$component['cid']] = array(
         'field' => $component['field'],
         'mode' => $component['mode'],
+        'group' => $component['group'],
       );
     }
   }
+  $settings['fields'] = $fields;
+  $settings['config'] = array_filter($form_state['values']['settings']);
   $storage_key = 'webform_captureplus_settings_' . $node->nid;
 
   // Clean existing settings.

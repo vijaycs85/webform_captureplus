@@ -10,7 +10,6 @@ function template_preprocess_webform_captureplus_form(&$variables) {
 
   $header = array(t('Field'), t('Capture+ group'), t('Capture+ field'), t('Mode'));
   $rows = array();
-
   if (!empty($node->webform['components'])) {
     $component_tree = array();
     $page_count = 1;
@@ -24,7 +23,6 @@ function template_preprocess_webform_captureplus_form(&$variables) {
   else {
     $rows[] = array(array('data' => t('No Components.'), 'colspan' => 9));
   }
-
   $variables['rows'] = $rows;
   $variables['header'] = $header;
   $variables['form'] = $form;
@@ -39,6 +37,7 @@ function template_preprocess_webform_captureplus_form(&$variables) {
 function theme_webform_captureplus_form($variables) {
   $output = '';
   $output .= drupal_render_children($variables['form']['warning']);
+  $output .= drupal_render($variables['form']['settings']);
   $output .= theme('table', array('header' => $variables['header'], 'rows' => $variables['rows'], 'attributes' => array('id' => 'webform-components')));
   $output .= drupal_render_children($variables['form']);
   return $output;
