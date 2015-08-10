@@ -5,14 +5,6 @@
  * Contains capture+ implementation for webform.
  */
 
-
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_DEFAULT', 3);
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_NONE', 0);
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_SEARCH', 1);
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_POPULATE', 2);
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_PRESERVE', 4);
-define('WEBFORM_CAPTUREPLUS_FIELD_MODE_COUNTRY', 8);
-
 /**
  * Implements hook_menu().
  */
@@ -20,7 +12,7 @@ function webform_captureplus_menu() {
   $items['node/%webform_menu/webform/captureplus'] = array(
     'title' => 'Capture+ settings',
     'page callback' => 'webform_captureplus_page',
-    'page arguments' => array( 1),
+    'page arguments' => array(1),
     'access callback' => 'webform_node_update_access',
     'access arguments' => array(1),
     'file' => 'includes/admin.inc',
@@ -46,6 +38,7 @@ function webform_captureplus_theme($existing, $type, $theme, $path) {
     ),
   );
 }
+
 /**
  * Implements hook_permission().
  */
@@ -56,6 +49,7 @@ function webform_captureplus_permission() {
     ),
   );
 }
+
 /**
  * Implements hook_form_alter().
  *
@@ -76,9 +70,8 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $called_forms[] = $nid;
     }
 
-    $settings = variable_get('webform_captureplus_settings_' . $nid, array());
-
-    if (!empty($settings)) {
+    $settings = WebformCapturePlusSettings::createFromNid($nid);
+    if (is_object($settings)) {
       //can't add javascript in this function or it will not be added if the
       // form is built from cache.  Need to run "after_build" function
       $form['#after_build'][] = 'webform_captureplus_add_js';
@@ -87,92 +80,18 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $elements_name = array();
       $name = array();
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
-
-      foreach ($settings as $cid => $field_settings) {
-        $fields[] = array(
-          'element' => $elements_name[$cid],
-          'field' => $field_settings['field'],
-          // Capture+ expects mode as integer.
-          'mode' => $field_settings['mode'],
-        );
-      }
-
-
-      $field_group['collection_address'] = array (
-        array (
-          'element' => 'submitted[collection_address][search_address]',
-          'field' => '',
-          'mode' => 1,
-        ),
-        array (
-          'element' => 'submitted[collection_address][company_name]',
-          'field' => 'Company',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[collection_address][collection_address_1]',
-          'field' => 'Line1',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[collection_address][collection_address_2]',
-          'field' => 'Line2',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[collection_address][city_or_town]',
-          'field' => 'City',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[collection_address][postcode]',
-          'field' => 'PostalCode',
-          'mode' => 2,
-        ),
-      );
-      $field_group['invoice_address'] = array (
-        array (
-          'element' => 'submitted[invoice_address][invoice_contact_name]',
-          'field' => 'Company',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[invoice_address][invoice_address_1]',
-          'field' => 'Line1',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[invoice_address][invoice_address_2]',
-          'field' => 'Line2',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[invoice_address][invoice_city_or_town]',
-          'field' => 'City',
-          'mode' => 2,
-        ),
-        array (
-          'element' => 'submitted[invoice_address][invoice_postcode]',
-          'field' => 'PostalCode',
-          'mode' => 3,
-        ),
-      );
-
+      $field_group = $settings->getFieldsByGroup($elements_name);
+      $config = $settings->getConfigAsArray() + array('key' => variable_get('capture_plus_key', 'CC85-WF93-EN79-HU91'));
       foreach ($field_group as $key => $fields) {
         if (!empty($fields)) {
           $js_settings[$key] = array(
-            'setCursor' => TRUE,
-            'countries' => (object) array('codesList' => 'GBR'),
-            'list' => (object) array('width' => 590, 'height' => 200),
-            'bar' => (object) array('visible' => FALSE),
-            'culture' => 'EN-GB',
-            'fields' => $fields,
-            'key' => variable_get('capture_plus_key'),
-          );
+              'fields' => $fields,
+            ) + $config;
         }
       }
-        //store JavaScript variable for the webform_captureplus_add_js function
-        $form['#webform_captureplus_js'] = array('webform_captureplus_' . $form_id => $js_settings);
+      //store JavaScript variable for the webform_captureplus_add_js function
+      $form['#webform_captureplus_js'] = array('webform_captureplus_' . $form_id => $js_settings);
+
     }
   }
 }
@@ -195,6 +114,7 @@ function _webform_captureplus_get_elements_name($components, &$names, &$name) {
     }
   }
 }
+
 /**
  * Implements hook_form_FORM_ID_alter().
  */
@@ -233,6 +153,12 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     '#default_value' => variable_get('webform_captureplus_allowed_fields', array()),
     '#description' => t('Allowed fields to map in webform. Check <a href="!link">Capture+ documentation</a> for more details.', array('!link' => 'http://www.pcapredict.com/support/webservice/captureplus/interactive/retrieve/' . $capture_plus_version . '/')),
   );
+  $form['captureplus']['webform_captureplus_max_group'] = array(
+    '#title' => t('Maximum number of address look ups in a form'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('webform_captureplus_max_group', 10),
+    '#description' => t('Maximum number of distinct address field look ups allowed in a form.'),
+  );
 }
 
 /**
@@ -252,7 +178,10 @@ function webform_captureplus_add_js(&$form, $form_state) {
       break;
     }
   }
-  drupal_add_js($form['#webform_captureplus_js'], array('type' => "setting", 'scope' => JS_DEFAULT));
+  drupal_add_js($form['#webform_captureplus_js'], array(
+    'type' => "setting",
+    'scope' => JS_DEFAULT
+  ));
   drupal_add_js(drupal_get_path('module', 'webform_captureplus') . '/js/webform_captureplus.js');
 
   webform_captureplus_add_lib();
@@ -268,7 +197,4 @@ function webform_captureplus_add_lib() {
   $capture_plus_version = variable_get('webform_captureplus_version', '3.20');
   drupal_add_js("//$capture_plus_domain/js/address-$capture_plus_version.min.js", array('type' => 'external'));
   drupal_add_css("//$capture_plus_domain/css/address-$capture_plus_version.min.css", array('type' => 'external'));
-
-  // Allow modules to override.
-  module_invoke_all('webform_captureplus_add_lib');
 }
