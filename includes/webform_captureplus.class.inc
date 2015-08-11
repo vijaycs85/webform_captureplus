@@ -182,18 +182,26 @@ class WebformCapturePlusSettings {
   }
 
   /**
+   * Ptovides group options.
+   *
    * @return array
    */
   public static function getGroupOptions() {
-    $group_options = range(1, 10, 1);
+    $max_groups = variable_get('webform_captureplus_max_group', 5);
+    $group_options = range(1, $max_groups, 1);
     $prefix = ucfirst(self::GROUP_NAME_PREFIX);
     array_walk($group_options, function(&$value) use ($prefix) {
       $value =  $prefix . ' ' . $value;
     });
-    return array_combine(range(1, 10, 1), $group_options);
+    return array_combine(range(1, $max_groups, 1), $group_options);
   }
 
 
+  /**
+   * Provides mode list.
+   *
+   * @return array
+   */
   public static function getModeOptions() {
     return  array(
       3 => 'Default',
@@ -204,4 +212,5 @@ class WebformCapturePlusSettings {
       8 => 'Country',
     );
   }
+
 }

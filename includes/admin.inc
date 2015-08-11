@@ -241,34 +241,36 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
  * Validate handler for webform_captureplus_form().
  */
 function webform_captureplus_form_validate($form, &$form_state) {
-  // Check that no two components end up with the same form key.
-  $duplicates = array();
-  $parents = array();
+  $group_modes = array();
+
   if (isset($form_state['values']['components'])) {
     foreach ($form_state['values']['components'] as $cid => $component) {
-      $form_key = $form['#node']->webform['components'][$cid]['form_key'];
-      if (isset($parents[$component['pid']]) && ($existing = array_search($form_key, $parents[$component['pid']])) && $existing !== FALSE) {
-        if (!isset($duplicates[$form_key])) {
-          $duplicates[$form_key] = array($existing);
+      // If an element is an address field component, all 3 values should be selected.
+      $address_fields = array_filter(array($component['group'], $component['field'], $component['mode']));
+      if (count($address_fields) && count($address_fields) < 3) {
+        if (empty($component['group'])) {
+          form_error($form['components'][$cid]['group'], t('Please select a group'));
         }
-        $duplicates[$form_key][] = $cid;
+        if (empty($component['field'])) {
+          form_error($form['components'][$cid]['field'], t('Please select Capture+ field for '));
+        }
+        if (empty($component['mode'])) {
+          form_error($form['components'][$cid]['mode'], t('Please select mode'));
+        }
       }
-      $parents[$component['pid']][$cid] = $form_key;
+      elseif (!empty($component['group']) && !empty($component['mode'])) {
+        $group_modes[$component['group']][] = $component['mode'];
+      }
     }
   }
-
-  if (!empty($duplicates)) {
-    $error = t('The form order failed to save because the following elements have same form keys and are under the same parent. Edit each component and give them a unique form key, then try moving them again.');
-    $items = array();
-    foreach ($duplicates as $form_key => $cids) {
-      foreach ($cids as $cid) {
-        $items[] = webform_filter_xss($form['#node']->webform['components'][$cid]['name']);
-      }
+  // Each group should have at least one DEFAULT/SEARCH mode field.
+  foreach ($group_modes as $group_id => $modes) {
+    if (!in_array(3, $modes) && !in_array(1, $modes)) {
+      form_set_error('', t('Group !group_id does not have a field with Search or Default mode.', array('!group_id' => $group_id)));
     }
-
-    form_error($form['components'], $error . theme('item_list', array('items' => $items)));
   }
 }
+
 /**
  * Submit handler for webform_captureplus_form() to save component order.
  */

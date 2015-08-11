@@ -156,9 +156,10 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
   $form['captureplus']['webform_captureplus_max_group'] = array(
     '#title' => t('Maximum number of address look ups in a form'),
     '#type' => 'textfield',
-    '#default_value' => variable_get('webform_captureplus_max_group', 10),
+    '#default_value' => variable_get('webform_captureplus_max_group', 5),
     '#description' => t('Maximum number of distinct address field look ups allowed in a form.'),
   );
+
 }
 
 /**
