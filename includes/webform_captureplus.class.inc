@@ -56,9 +56,9 @@ class WebformCapturePlusSettings {
    */
   public static function createFromNid($nid, $default_value = array()) {
     $key = WebformCapturePlusSettings::VARIABLE_PREFIX .$nid;
-    $raw = variable_get($key, $default_value);
+    $raw = variable_get($key, $default_value) +  array('fields' => array(), 'config' => array());
     if (is_array($raw['fields'])) {
-      $object =  new WebformCapturePlusSettings($raw['fields']);
+      $object =  new static($raw['fields']);
       if (isset($raw['config'])) {
         $object->setConfig($raw['config']);
       }
@@ -169,8 +169,8 @@ class WebformCapturePlusSettings {
    */
   public function getConfigAsArray() {
     $list = array(
-      'width' => $this->getConfigByName('list_width', 600),
-      'height' => $this->getConfigByName('list_height', 200)
+      'width' => (int) $this->getConfigByName('list_width', 600),
+      'height' => (int) $this->getConfigByName('list_height', 200)
     );
     return array(
       'setCursor' => $this->getConfigByName('set_cursor', TRUE),
