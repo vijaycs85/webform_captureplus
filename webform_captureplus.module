@@ -126,6 +126,19 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
   $field_options = array_combine($fields, $fields);
   ksort($field_options);
 
+  $default_fields = array(
+    'Id',
+    'Label',
+    'PostalCode',
+    'Line1',
+    'Line2',
+    'City', 'Company',
+    'CountryIso2',
+    'CountryIso3',
+    'CountryIsoNumber',
+    'CountryName',
+  );
+
   $form['captureplus'] = array(
     '#type' => 'fieldset',
     '#title' => t('Capture+ settings'),
@@ -150,7 +163,7 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     '#title' => t('Allowed fields'),
     '#type' => 'checkboxes',
     '#options' => $field_options,
-    '#default_value' => variable_get('webform_captureplus_allowed_fields', array()),
+    '#default_value' => variable_get('webform_captureplus_allowed_fields', $default_fields),
     '#description' => t('Allowed fields to map in webform. Check <a href="!link">Capture+ documentation</a> for more details.', array('!link' => 'http://www.pcapredict.com/support/webservice/captureplus/interactive/retrieve/' . $capture_plus_version . '/')),
   );
   $form['captureplus']['webform_captureplus_max_group'] = array(

@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * Contains Webform Capture+ UI tests.
+ */
+
+/**
+ * Class ActionsConfigurationTestCase
+ */
+class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
+
+  protected $modules = array('webform', 'webform_captureplus');
+  public static function getInfo() {
+    return array(
+      'name' => 'Webform Capture+ Admin UI',
+      'description' => 'Tests webform capture+ global & node level configurations.',
+      'group' => 'Webform',
+    );
+  }
+
+
+  /**
+   * Implements setUp().
+   */
+  function setUp($added_modules = array()) {
+    parent::setUp(array_merge($added_modules, array('webform_captureplus')));
+  }
+
+
+  /**
+   * Test the configuration of advanced actions through the administration
+   * interface.
+   */
+  function testGlobalConfiguration() {
+    $this->drupalLogin($this->webform_users['admin']);
+    $this->webformReset();
+    // Create a new Webform test node.
+    $node = $this->testWebformForm();
+    $this->drupalGet('node/' . $node->nid . '/webform/captureplus');
+  }
+
+}

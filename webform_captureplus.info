@@ -4,4 +4,8 @@ core = 7.x
 
 dependencies[] = webform
 
+; Tests
+files[] = tests/webform_captureplus_ui.test
+files[] = tests/webform_captureplus.webform_base.test
+
 files[] = includes/webform_captureplus.class.inc
