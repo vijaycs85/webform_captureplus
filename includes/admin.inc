@@ -214,7 +214,9 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
   $row_data = array(
     array('data' => $indents . filter_xss($component['name']), 'class' => array('webform-component-name')),
   );
-  if ($component['type'] == 'fieldset') {
+  $default_excludes = array('fieldset', 'date', 'time', 'grid', 'checkboxes', 'email' );
+  $exclude_field_types =  variable_get('webform_captureplus_exclude_webform_component_types', $default_excludes);
+  if (in_array($component['type'], $exclude_field_types)) {
     unset($form['components'][$cid]['group']);
     unset($form['components'][$cid]['field']);
     unset($form['components'][$cid]['mode']);
