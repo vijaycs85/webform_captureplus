@@ -81,7 +81,7 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $name = array();
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
       $field_group = $settings->getFieldsByGroup($elements_name);
-      $config = $settings->getConfigAsArray() + array('key' => variable_get('capture_plus_key', NULL));
+      $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
       foreach ($field_group as $key => $fields) {
         if (!empty($fields)) {
           $js_settings[$key] = array(
@@ -147,6 +147,11 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     '#weight' => 19,
   );
 
+  $form['captureplus']['webform_captureplus_key'] = array(
+    '#title' => t('Capture+ API key'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('webform_captureplus_key', NULL),
+  );
   $form['captureplus']['webform_captureplus_domain'] = array(
     '#title' => t('Capture+ domain'),
     '#type' => 'textfield',

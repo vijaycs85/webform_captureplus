@@ -74,12 +74,13 @@ class WebformCapturePlusWebTestBase extends DrupalWebTestCase {
       'access content',
       'administer nodes',
       'create webform content',
+      'edit webform components',
       'edit any webform content',
       'access all webform results',
       'edit all webform submissions',
+      'administer site configuration',
       'delete all webform submissions',
       'administer webform capture plus',
-      'edit webform components',
     );
 
     foreach ($permissions as $user_key => $role_permissions) {
