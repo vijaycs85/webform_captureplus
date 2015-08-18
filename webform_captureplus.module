@@ -56,6 +56,7 @@ function webform_captureplus_permission() {
  * Add capture+ settings
  */
 function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
+  global $language;
   static $called_forms = array();
 
   if (strstr($form_id, 'webform_client_form_') && isset($form['submitted'])) {
@@ -72,23 +73,42 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
 
     $settings = WebformCapturePlusSettings::createFromNid($nid);
     if (is_object($settings)) {
-      //can't add javascript in this function or it will not be added if the
-      // form is built from cache.  Need to run "after_build" function
-      $form['#after_build'][] = 'webform_captureplus_add_js';
+      $js_settings = array();
+
+      // Create message catelogue.
+      $message_catalogue = new WebformCapturePlusMessageCatalogue($language->language, array('messages' => WebformCapturePlusSettings::getDefaultMessages()));
+      $settings->setMessages($message_catalogue);
+
+      // Allow other modules to update the settings.
+      drupal_alter('webform_captureplus_settings', $settings);
 
       // get the element names.
       $elements_name = array();
       $name = array();
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
+
       $field_group = $settings->getFieldsByGroup($elements_name);
       $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
+      $message_catalogue = $settings->getMessages();
+      if ($messages = $message_catalogue->all('messages')) {
+        $messages = array($message_catalogue->getLocale() => $messages);
+      }
+      $header = $settings->getMessages()->all('header');
+
       foreach ($field_group as $key => $fields) {
         if (!empty($fields)) {
-          $js_settings[$key] = array(
+          $js_settings[$key] = array_filter(array(
               'fields' => $fields,
-            ) + $config;
+              'messages' => $messages,
+              'header' => $header
+            )) + $config;
         }
       }
+
+      //can't add javascript in this function or it will not be added if the
+      // form is built from cache.  Need to run "after_build" function
+      $form['#after_build'][] = 'webform_captureplus_add_js';
+
       //store JavaScript variable for the webform_captureplus_add_js function
       $form['#webform_captureplus_js'] = array('webform_captureplus_' . $form_id => $js_settings);
 

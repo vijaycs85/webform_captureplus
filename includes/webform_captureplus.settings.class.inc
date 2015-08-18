@@ -31,19 +31,17 @@ class WebformCapturePlusSettings {
   protected $config = array();
 
   /**
+   * @var WebformCapturePlusMessageCatalogueInterface
+   */
+  protected $messages;
+
+  /**
    * @param $fields
    * @param array $config
    */
   public function __construct($fields, $config = array()) {
     $this->fields = $fields;
     $this->config = $config;
-  }
-
-  /**
-   *
-   */
-  public static function create() {
-
   }
 
   /**
@@ -56,7 +54,7 @@ class WebformCapturePlusSettings {
    */
   public static function createFromNid($nid, $default_value = array()) {
     $key = WebformCapturePlusSettings::VARIABLE_PREFIX .$nid;
-    $raw = variable_get($key, $default_value) +  array('fields' => array(), 'config' => array());
+    $raw = variable_get($key, $default_value) +  array('fields' => array(), 'config' => array(), 'messages' => array());
     if (is_array($raw['fields'])) {
       $object =  new static($raw['fields']);
       if (isset($raw['config'])) {
@@ -168,17 +166,35 @@ class WebformCapturePlusSettings {
    * @return array
    */
   public function getConfigAsArray() {
-    $list = array(
-      'width' => (int) $this->getConfigByName('list_width', 600),
-      'height' => (int) $this->getConfigByName('list_height', 200)
-    );
-    return array(
+    $list = array();
+    if ($width = $this->getConfigByName('list_width', NULL)) {
+      $list['width'] = (int) $width;
+    }
+    if ($height = $this->getConfigByName('list_height', NULL)) {
+      $list['height'] = (int) $height;
+    }
+
+    $config = array(
       'setCursor' => $this->getConfigByName('set_cursor', TRUE),
-      'countries' => (object) array('codesList' =>  $this->getConfigByName('countries', 'GBR')),
-      'list' => (object) $list,
-      'bar' => (object) array('visible' =>  $this->getConfigByName('bar_visible', FALSE)),
+      'countries' => array('codesList' =>  $this->getConfigByName('countries', 'GBR')),
+      'bar' => array('visible' =>  $this->getConfigByName('bar_visible', FALSE), 'showCountry' => FALSE, 'showLogo' => FALSE),
+      'list' => $list,
       'culture' => $this->getConfigByName('culture', 'EN-GB'),
     );
+
+    return array_filter($config);
+  }
+
+  public function setMessages(WebformCapturePlusMessageCatalogueInterface $messages) {
+    $this->messages = $messages;
+    return $this;
+  }
+
+  /**
+   * @return \WebformCapturePlusMessageCatalogueInterface
+   */
+  public function getMessages() {
+    return $this->messages;
   }
 
   /**
@@ -196,7 +212,6 @@ class WebformCapturePlusSettings {
     return array_combine(range(1, $max_groups, 1), $group_options);
   }
 
-
   /**
    * Provides mode list.
    *
@@ -213,4 +228,18 @@ class WebformCapturePlusSettings {
     );
   }
 
+  public static function getDefaultMessages() {
+    return array(
+      'DIDYOUMEAN' => 'Did you mean:',
+      'NORESULTS' => 'No results found',
+      'KEEPTYPING' => 'Keep typing your address to display more results',
+      'RETRIEVEERROR' => 'Record could not be retrieved',
+      'SERVICEERROR' => 'Service Error:',
+      'COUNTRYSELECT' => 'Select Country',
+      'NOLOCATION' => 'Sorry, we could not get your location',
+      'NOCOUNTRY' => 'Sorry, we could not find this country',
+    );
+  }
+
 }
+

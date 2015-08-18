@@ -25,10 +25,7 @@ function webform_captureplus_page($node, $page_number = 1) {
  * Builder module is available.
  */
 function theme_webform_captureplus_page($variables) {
-  $node = $variables['node'];
-  $form = $variables['form'];
-
-  return drupal_render($form);
+  return drupal_render($variables['form']);
 }
 
 /**
@@ -71,8 +68,6 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#title' => t('Countries'),
     '#description' => t('Countries to allow Capture+ lookup.'),
     '#default_value' => $settings->getConfigByName('countries', 'GBR'),
-    // @todo: add country codes.
-    //'#options' => array(),
   );
   $form['settings']['bar_visible'] = array(
     '#type' => 'checkbox',
@@ -93,18 +88,18 @@ function webform_captureplus_form($form, $form_state, $node) {
   $form['settings']['list_width'] = array(
     '#type' => 'textfield',
     '#title' => t('Width'),
-    '#description' => t('Width of Capture+ lookup autocomplete box.'),
+    '#description' => t('Width of Capture+ lookup autocomplete box. Leave it blank to adjust the width depending on the result.'),
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' =>  $settings->getConfigByName('list_width', 600),
+    '#default_value' =>  $settings->getConfigByName('list_width', NULL),
   );
   $form['settings']['list_height'] = array(
     '#type' => 'textfield',
     '#title' => t('Height'),
-    '#description' => t('Height of Capture+ lookup autocomplete box.'),
+    '#description' => t('Height of Capture+ lookup autocomplete box. Leave it blank to adjust the height depending on the result.'),
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' =>  $settings->getConfigByName('list_height', 300),
+    '#default_value' => $settings->getConfigByName('list_height', NULL),
   );
 
   $options = array();
@@ -148,23 +143,27 @@ function webform_captureplus_form($form, $form_state, $node) {
     );
   }
   $mode_links = array(
-    '<strong>Default</strong>: Uses the field as search + populate field.',
-    '<strong>Search</strong>: Uses the field ONLY for search.',
-    '<strong>Populate</strong>: Uses the field ONLY for populate value of mapped Capture+ field.',
-    '<strong>Preserve</strong>: Keeps the field value, if it is prefilled',
-    '<strong>None</strong>: No Capture+ field mapping.',
+    t('<strong>Default</strong>: Uses the field as search field and populate value of mapped Capture+ field.'),
+    t('<strong>Search</strong>: Uses the field ONLY for search.'),
+    t('<strong>Populate</strong>: Uses the field ONLY to populate value of mapped Capture+ field.'),
+    t('<strong>Preserve</strong>: Keeps the field value, if it is prefilled'),
+    t('<strong>None</strong>: No Capture+ field mapping.'),
   );
-  $mode_list = theme('item_list', array('items' => $mode_links));
+
+  $params = array(
+    '!doc_link' => url('http://www.postcodeanywhere.co.uk/capture-plus/reference/2.20/', array('external' => TRUE)),
+    '!settings' => url('admin/config/content/webform'),
+  );
   $links = array(
-    '<strong>Group</strong>: Group allows to create multiple Capture+ look up elements in same form.',
-    '<strong>Capture+ field</strong>: Capture+ search result provides set of fields. Please check <a href="!manual_link">documentation</a> for all available fields. The options can be changed from <a href="!settings">webform settings</a> page',
-    '<strong>Mode</strong>: Defines how the fields behaviour. Allowed options are:<br />' . $mode_list,
+    t('<strong>Group</strong>: Group allows to create multiple Capture+ look up elements in same form.'),
+    t('<strong>Capture+ field</strong>: Capture+ search result provides set of fields. Please check <a href="!doc_link" target="_blank">documentation</a> for all available fields. The options can be changed from <a href="!settings">webform settings</a> page', $params),
+    t('<strong>Mode</strong>: Defines how the fields behaviour. Allowed options are:<br />') . theme('item_list', array('items' => $mode_links)),
   );
+
   $form['components']['notes'] = array(
     '#type' => 'markup',
     '#markup' => theme('item_list', array('items' => $links, 'title' => t('Notes'))),
   );
-
 
   $form['actions'] = array(
     '#type' => 'actions',

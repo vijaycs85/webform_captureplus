@@ -8,4 +8,6 @@ dependencies[] = webform
 files[] = tests/webform_captureplus_ui.test
 files[] = tests/webform_captureplus.webform_base.test
 
-files[] = includes/webform_captureplus.class.inc
+; Classes & interfaces.
+files[] = includes/webform_captureplus.settings.class.inc
+files[] = includes/webform_captureplus.messages.class.inc
