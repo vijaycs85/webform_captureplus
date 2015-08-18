@@ -177,7 +177,7 @@ class WebformCapturePlusSettings {
     $config = array(
       'setCursor' => $this->getConfigByName('set_cursor', TRUE),
       'countries' => array('codesList' =>  $this->getConfigByName('countries', 'GBR')),
-      'bar' => array('visible' =>  $this->getConfigByName('bar_visible', FALSE), 'showCountry' => FALSE, 'showLogo' => FALSE),
+      'bar' => array('visible' =>  $this->getConfigByName('bar_visible', FALSE)),
       'list' => $list,
       'culture' => $this->getConfigByName('culture', 'EN-GB'),
     );
