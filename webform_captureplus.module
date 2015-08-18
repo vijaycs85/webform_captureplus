@@ -13,8 +13,7 @@ function webform_captureplus_menu() {
     'title' => 'Capture+ settings',
     'page callback' => 'webform_captureplus_page',
     'page arguments' => array(1),
-    'access callback' => 'webform_node_update_access',
-    'access arguments' => array(1),
+    'access arguments' => array('administer webform capture plus'),
     'file' => 'includes/admin.inc',
     'weight' => 6,
     'type' => MENU_LOCAL_TASK,
@@ -74,10 +73,8 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
     $settings = WebformCapturePlusSettings::createFromNid($nid);
     if (is_object($settings)) {
       $js_settings = array();
-
-      // Create message catelogue.
-      $message_catalogue = new WebformCapturePlusMessageCatalogue($language->language, array('messages' => WebformCapturePlusSettings::getDefaultMessages()));
-      $settings->setMessages($message_catalogue);
+      $messages = array();
+      $header = array();
 
       // Allow other modules to update the settings.
       drupal_alter('webform_captureplus_settings', $settings);
@@ -90,10 +87,14 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $field_group = $settings->getFieldsByGroup($elements_name);
       $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
       $message_catalogue = $settings->getMessages();
-      if ($messages = $message_catalogue->all('messages')) {
-        $messages = array($message_catalogue->getLocale() => $messages);
+
+      if (is_object($message_catalogue)) {
+        if ($messages = $message_catalogue->all('messages')) {
+          // @todo: we may want to set the language as well?
+          $messages = array($message_catalogue->getLocale() => $messages);
+        }
+        $header = $settings->getMessages()->all('header');
       }
-      $header = $settings->getMessages()->all('header');
 
       foreach ($field_group as $key => $fields) {
         if (!empty($fields)) {
@@ -201,9 +202,13 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
 }
 
 /**
- * Function run #after_build on webform.  This ensures that Javascript is added even if form is built from cache.
+ * Function run #after_build on webform.
+ *
+ * This ensures that Javascript is added even if form is built from cache.
+ *
  * @param array $form
  * @param array $form_state
+ *
  * @return array
  *  The form
  */
@@ -223,17 +228,11 @@ function webform_captureplus_add_js(&$form, $form_state) {
   ));
   drupal_add_js(drupal_get_path('module', 'webform_captureplus') . '/js/webform_captureplus.js');
 
-  webform_captureplus_add_lib();
-  return $form;
-}
-
-/**
- * Add css/js libraries.
- */
-function webform_captureplus_add_lib() {
   // Including Capture+ js and css.
   $capture_plus_domain = variable_get('webform_captureplus_domain', 'services.postcodeanywhere.co.uk');
   $capture_plus_version = variable_get('webform_captureplus_version', '3.20');
   drupal_add_js("//$capture_plus_domain/js/address-$capture_plus_version.min.js", array('type' => 'external'));
   drupal_add_css("//$capture_plus_domain/css/address-$capture_plus_version.min.css", array('type' => 'external'));
+
+  return $form;
 }
