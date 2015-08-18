@@ -41,7 +41,9 @@
             // Display header message, if any.
             if (info.header != null && info.header != undefined) {
                 info.control.listen('display', function (items, attributes) {
-                    info.control.message(pca.formatLine(attributes, info.header));
+                    $.each(info.header, function(header_id, message) {
+                        info.control.message(pca.formatLine(attributes, message));
+                    });
                 });
             }
         }
