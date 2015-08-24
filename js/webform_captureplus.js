@@ -37,7 +37,6 @@
          *  @param info
          */
         function subscribeDisplayEvent(info) {
-            console.log(info.header);
             // Display header message, if any.
             if (info.header != null && info.header != undefined) {
                 info.control.listen('display', function (items, attributes) {
