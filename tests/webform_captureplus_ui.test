@@ -5,6 +5,9 @@
  * Contains Webform Capture+ UI tests.
  */
 
+// drupal.org CI throws fatal that it can't find WebformCapturePlusWebTestBase.
+include_once __DIR__ . '/webform_captureplus.webform_base.test';
+
 /**
  * Class ActionsConfigurationTestCase
  */
