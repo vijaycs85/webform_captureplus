@@ -203,6 +203,7 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
 
   $default_excludes = array('fieldset', 'date', 'time', 'grid', 'checkboxes', 'email' );
   $exclude_field_types =  variable_get('webform_captureplus_exclude_webform_component_types', $default_excludes);
+  $row_class = NULL;
   if (in_array($component['type'], $exclude_field_types)) {
     unset($form['components'][$cid]['group']);
     unset($form['components'][$cid]['field']);

@@ -139,7 +139,7 @@ function _webform_captureplus_get_elements_name($components, &$names, &$name) {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_state, $form_id) {
+function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_state) {
   module_load_include('inc', 'webform_captureplus', 'includes/admin');
   $capture_plus_version = variable_get('webform_captureplus_version', '3.20');
 

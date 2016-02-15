@@ -23,10 +23,8 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
    * Implements setUp().
    */
   function setUp($added_modules = array()) {
-    parent::setUp(array_merge($added_modules, array('webform_captureplus')));
+    parent::setUp(array_merge($added_modules, array('webform_captureplus', 'autoload')));
   }
-
-
 
   /**
    * Test the configuration of advanced actions through the administration
@@ -34,7 +32,7 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
    */
   function testGlobalConfiguration() {
     $this->drupalLogin($this->webform_users['admin']);
-    $this->drupalGet('admin/config/content/webform');
+    $this->drupalGet('admin/settings/webform');
     $this->assertText('Capture+ settings');
 
 
@@ -43,13 +41,13 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
     $this->assertFieldByName('webform_captureplus_max_group');
     $this->assertDefaultFields();
     $new_field = 'BuildingName';
-    $this->assertNoFieldChecked('edit-webform-captureplus-allowed-fields-' . strtolower($new_field));
+    $this->assertNoFieldChecked('edit-webform-captureplus-allowed-fields-' . $new_field);
 
     $edit = array('webform_captureplus_allowed_fields[' . $new_field . ']' => TRUE);
     $this->drupalPost(NULL, $edit, t('Save configuration'));
     $this->assertText('The configuration options have been saved.');
     $this->assertDefaultFields();
-    $this->assertFieldChecked('edit-webform-captureplus-allowed-fields-' . strtolower($new_field));
+    $this->assertFieldChecked('edit-webform-captureplus-allowed-fields-' . $new_field);
   }
 
   /**
@@ -59,7 +57,7 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
     $fields = array('City', 'Company', 'PostalCode', 'Line1', 'Line2', 'Id', 'Label');
     foreach ($fields as $field) {
       $this->assertFieldByName('webform_captureplus_allowed_fields[' . $field . ']');
-      $this->assertFieldChecked('edit-webform-captureplus-allowed-fields-' . strtolower($field));
+      $this->assertFieldChecked('edit-webform-captureplus-allowed-fields-' . $field);
     }
   }
 
