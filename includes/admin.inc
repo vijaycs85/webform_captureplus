@@ -152,7 +152,7 @@ function webform_captureplus_form($form_state, $node) {
       '#type' => 'textfield',
       '#title' => t('Placeholder text'),
       '#default_value' => $settings->getComponentPlaceholderTextById($cid),
-      '#size' => 35,
+      '#size' => 24,
       '#prefix' =>'<div class="placeholder">',
       '#suffix' => '</div>',
       '#attributes' => array('placeholder' => t('Start typing a postcode, street or address')),
