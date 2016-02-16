@@ -27,6 +27,7 @@ function theme_webform_captureplus_page($node, $form) {
  * The table-based listing of all components for this webform.
  */
 function webform_captureplus_form($form_state, $node) {
+  drupal_add_js(drupal_get_path('module', 'webform_captureplus') . '/js/webform_captureplus.admin.js');
   $form = array(
     '#tree' => TRUE,
     '#node' => $node,
@@ -42,7 +43,7 @@ function webform_captureplus_form($form_state, $node) {
 
   $form['settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('API Settings'),
+    '#title' => t('Settings'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -96,9 +97,11 @@ function webform_captureplus_form($form_state, $node) {
     '#maxlength' => 5,
     '#default_value' => $settings->getConfigByName('list_height', NULL),
   );
-
   $options = array();
-  $captureplus_fields = variable_get('webform_captureplus_allowed_fields', array());
+  $captureplus_fields = array_filter(variable_get('webform_captureplus_allowed_fields', array()));
+  if (isset($captureplus_fields[WEBFORM_CAPTUREPLUS_EMPTY_FIELD])) {
+    $captureplus_fields[WEBFORM_CAPTUREPLUS_EMPTY_FIELD] = t('Empty (for search only field)');
+  }
   $mode_options = WebformCapturePlusSettings::getModeOptions();
   $group_options = WebformCapturePlusSettings::getGroupOptions();
 
@@ -124,7 +127,7 @@ function webform_captureplus_form($form_state, $node) {
       '#type' => 'select',
       '#title' => t('Capture+ field'),
       '#default_value' => $settings->getComponentFieldById($cid),
-      '#options' => array_filter($captureplus_fields),
+      '#options' => $captureplus_fields,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
@@ -135,6 +138,18 @@ function webform_captureplus_form($form_state, $node) {
       '#options' => $mode_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
+      '#attributes' => array('style' => 'float: left; margin-right:5px'),
+      '#prefix' =>'<div class="mode">',
+      '#suffix' => '</div>',
+    );
+    $form['components'][$cid]['placeholder'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Placeholder text'),
+      '#default_value' => $settings->getComponentPlaceholderTextById($cid),
+      '#size' => 35,
+      '#prefix' =>'<div class="placeholder">',
+      '#suffix' => '</div>',
+      '#attributes' => array('placeholder' => t('Start typing a postcode, street or address')),
     );
   }
   $mode_links = array(
@@ -190,6 +205,7 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
   unset($form['components'][$cid]['group']['#title']);
   unset($form['components'][$cid]['field']['#title']);
   unset($form['components'][$cid]['mode']['#title']);
+  unset($form['components'][$cid]['placeholder']['#title']);
 
   // Add special classes for weight and parent fields.
   $form['components'][$cid]['cid']['#attributes']['class'] = 'webform-cid';
@@ -219,7 +235,7 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
       $indents . filter_xss($component['name']),
       drupal_render($form['components'][$cid]['group']),
       drupal_render($form['components'][$cid]['field']),
-      drupal_render($form['components'][$cid]['mode']),
+      drupal_render($form['components'][$cid]['mode']) . drupal_render($form['components'][$cid]['placeholder']) ,
     );
   }
   $rows[] = array('data' => $row_data, 'class' => $row_class, 'data-cid' => $cid);
@@ -271,6 +287,7 @@ function webform_captureplus_form_validate($form, &$form_state) {
 function webform_captureplus_form_submit($form, &$form_state) {
   $node = node_load($form_state['values']['nid']);
   $fields = array();
+  $placeholder_modes = WebformCapturePlusSettings::getModesWithPlaceholder();
   foreach ($form_state['values']['components'] as $cid => $component) {
     if (!empty($component['field']) && !empty($component['mode'])) {
       $fields[$component['cid']] = array(
@@ -278,6 +295,9 @@ function webform_captureplus_form_submit($form, &$form_state) {
         'mode' => $component['mode'],
         'group' => $component['group'],
       );
+      if (in_array($component['mode'], array_keys($placeholder_modes))) {
+        $fields[$component['cid']]['placeholder'] = $component['placeholder'];
+      }
     }
   }
   $settings['fields'] = $fields;

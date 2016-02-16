@@ -5,6 +5,7 @@
  * Contains capture+ implementation for webform.
  */
 
+define('WEBFORM_CAPTUREPLUS_EMPTY_FIELD', 'Field20');
 /**
  * Implements hook_menu().
  */
@@ -82,6 +83,7 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
 
       $field_group = $settings->getFieldsByGroup($elements_name);
+      $placeholders = $settings->getPlaceholderByGroup($elements_name);
       $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
       $message_catalogue = $settings->getMessages();
 
@@ -98,7 +100,8 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
           $js_settings[$key] = array_filter(array(
               'fields' => $fields,
               'messages' => $messages,
-              'header' => $header
+              'header' => $header,
+              'placeholders' => $placeholders[$key],
             )) + $config;
         }
       }
@@ -137,7 +140,7 @@ function _webform_captureplus_get_elements_name($components, &$names, &$name) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Form alter for admin form.
  */
 function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_state) {
   module_load_include('inc', 'webform_captureplus', 'includes/admin');
@@ -145,7 +148,9 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
 
   $fields = webform_captureplus_get_field_mappings();
   $field_options = array_combine($fields, $fields);
-  ksort($field_options);
+  // Update label for empty field.
+  $field_options[WEBFORM_CAPTUREPLUS_EMPTY_FIELD] = t('Empty (for search only field)');
+  asort($field_options);
 
   $default_fields = array(
     'Id',
@@ -158,6 +163,7 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     'CountryIso3',
     'CountryIsoNumber',
     'CountryName',
+    'Field20',
   );
   $form['captureplus'] = array(
     '#type' => 'fieldset',
@@ -184,18 +190,33 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     '#default_value' => $capture_plus_version,
     '#description' => t('Capture+ API version'),
   );
+  $form['captureplus']['webform_captureplus_max_group'] = array(
+    '#title' => t('Maximum number of address look ups in a form'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('webform_captureplus_max_group', 5),
+    '#description' => t('Maximum number of distinct address field look ups allowed in a form.'),
+  );
+
+  $form['captureplus']['messages'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Message Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  foreach (WebformCapturePlusSettings::getDefaultMessages() as $key => $default_message) {
+    $variable = 'captureplus_messages_' . $key;
+    $form['captureplus']['messages'][$variable] = array(
+      '#type' => 'textfield',
+      '#title' => ucfirst(strtolower($key)),
+      '#default_value' =>  variable_get($variable, $default_message),
+    );
+  }
   $form['captureplus']['webform_captureplus_allowed_fields'] = array(
     '#title' => t('Allowed fields'),
     '#type' => 'checkboxes',
     '#options' => $field_options,
     '#default_value' => variable_get('webform_captureplus_allowed_fields', $default_fields),
     '#description' => t('Allowed fields to map in webform. Check <a href="!link">Capture+ documentation</a> for more details.', array('!link' => 'http://www.pcapredict.com/support/webservice/captureplus/interactive/retrieve/' . $capture_plus_version . '/')),
-  );
-  $form['captureplus']['webform_captureplus_max_group'] = array(
-    '#title' => t('Maximum number of address look ups in a form'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('webform_captureplus_max_group', 5),
-    '#description' => t('Maximum number of distinct address field look ups allowed in a form.'),
   );
 
 }

@@ -11,10 +11,26 @@
                     info.control = new pca.Address(info.fields, info);
                     attachMessages(info);
                     subscribeDisplayEvent(info);
+                    attachPlaceholder(info);
                 });
             }
 
         });
+
+        /**
+         * Attach Placeholder messages.
+         *
+         * @param info
+         */
+        function attachPlaceholder(info) {
+            if (info.placeholders != null && info.placeholders != undefined) {
+                $.each(info.placeholders, function(element, message) {
+                    var $selector = $("input[name='" + element + "']")
+                    var t = new pca.Tooltip($selector.get(0), message);
+                    $selector.attr('placeholder', message);
+                });
+            }
+        }
 
         /**
          * Attach translated messages.
