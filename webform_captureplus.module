@@ -68,7 +68,7 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $called_forms[] = $nid;
     }
 
-    $settings = WebformCapturePlusSettings::createFromNid($nid);
+    $settings = webform_captureplus_get_settings($nid);
     if (is_object($settings)) {
       $js_settings = array();
       $messages = array();
@@ -86,7 +86,6 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       $placeholders = $settings->getPlaceholderByGroup($elements_name);
       $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
       $message_catalogue = $settings->getMessages();
-
       if (is_object($message_catalogue)) {
         if ($messages = $message_catalogue->all('messages')) {
           // @todo: we may want to set the language as well?
@@ -206,9 +205,11 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
   foreach (WebformCapturePlusSettings::getDefaultMessages() as $key => $default_message) {
     $variable = 'captureplus_messages_' . $key;
     $form['captureplus']['messages'][$variable] = array(
-      '#type' => 'textfield',
+      '#type' => 'textarea',
       '#title' => ucfirst(strtolower($key)),
       '#default_value' =>  variable_get($variable, $default_message),
+      '#row' => 3,
+      '#column' => 20,
     );
   }
   $form['captureplus']['webform_captureplus_allowed_fields'] = array(
@@ -255,4 +256,24 @@ function webform_captureplus_add_js(&$form, $form_state) {
   drupal_set_html_head('<link type="text/css" rel="stylesheet" media="all" href="//'. $capture_plus_domain .'/css/address-'. $capture_plus_version .'.min.css" />');
 
   return $form;
+}
+
+
+function webform_captureplus_get_settings($nid) {
+  $settings = WebformCapturePlusSettings::createFromNid($nid);
+  if(is_object($settings)) {
+    global $language;
+    // Set message from global configurations.
+    // variable_get('')
+    foreach (WebformCapturePlusSettings::getDefaultMessages() as $key => $default_message) {
+      $variable = 'captureplus_messages_' . $key;
+      $list[$key] = variable_get($variable, NULL);
+    }
+    if (array_filter($list)) {
+      $messages = new WebformCapturePlusMessageCatalogue($language->language, ['messages' => $list]);
+      $settings->setMessages($messages);
+    }
+    return $settings;
+  }
+  return NULL;
 }

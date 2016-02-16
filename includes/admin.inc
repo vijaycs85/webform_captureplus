@@ -53,19 +53,25 @@ function webform_captureplus_form($form_state, $node) {
     '#description' => t('API key from <a href="!url">Capture+</a>. Leave it blank to use global key.', array('!url' => 'http://www.postcodeanywhere.co.uk')),
     '#default_value' => isset($node->webform['captureplus']['key']) ?: NULL
   );
-  $form['settings']['set_cursor'] = array(
+  $form['settings']['autocomplete'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Autocomplete list settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['settings']['autocomplete']['set_cursor'] = array(
     '#type' => 'checkbox',
     '#title' => t('Replace search box text on focus'),
     '#description' => t('Updates the input field with the current search text.'),
     '#default_value' => $settings->getConfigByName('set_cursor', TRUE),
   );
-  $form['settings']['countries'] = array(
+  $form['settings']['autocomplete']['countries'] = array(
     '#type' => 'textfield',
     '#title' => t('Countries'),
     '#description' => t('Countries to allow Capture+ lookup.'),
     '#default_value' => $settings->getConfigByName('countries', 'GBR'),
   );
-  $form['settings']['bar_visible'] = array(
+  $form['settings']['autocomplete']['bar_visible'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show country bar'),
     '#description' => t('Country selection bar on Capture+ lookup autocomplete box footer.'),
@@ -73,7 +79,7 @@ function webform_captureplus_form($form_state, $node) {
     '#maxlength' => 5,
     '#default_value' => $settings->getConfigByName('bar_visible', FALSE),
   );
-  $form['settings']['culture'] = array(
+  $form['settings']['autocomplete']['culture'] = array(
     '#type' => 'textfield',
     '#title' => t('Language'),
     '#description' => t('The address suggestion language.'),
@@ -81,7 +87,7 @@ function webform_captureplus_form($form_state, $node) {
     '#size' => 10,
     '#maxlength' => 10,
   );
-  $form['settings']['list_width'] = array(
+  $form['settings']['autocomplete']['list_width'] = array(
     '#type' => 'textfield',
     '#title' => t('Width'),
     '#description' => t('Width of Capture+ lookup autocomplete box. Leave it blank to adjust the width depending on the result.'),
@@ -89,7 +95,7 @@ function webform_captureplus_form($form_state, $node) {
     '#maxlength' => 5,
     '#default_value' =>  $settings->getConfigByName('list_width', NULL),
   );
-  $form['settings']['list_height'] = array(
+  $form['settings']['autocomplete']['list_height'] = array(
     '#type' => 'textfield',
     '#title' => t('Height'),
     '#description' => t('Height of Capture+ lookup autocomplete box. Leave it blank to adjust the height depending on the result.'),

@@ -28,6 +28,10 @@
                     var $selector = $("input[name='" + element + "']")
                     var t = new pca.Tooltip($selector.get(0), message);
                     $selector.attr('placeholder', message);
+                    // Fix for IE.
+                    //if ($.browser.msie && $.browser.version < 10) {
+                    //    $selector.val('').focus();
+                    //}
                 });
             }
         }
