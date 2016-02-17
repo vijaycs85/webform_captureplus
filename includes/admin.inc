@@ -151,11 +151,11 @@ function webform_captureplus_form($form_state, $node) {
     $form['components'][$cid]['placeholder'] = array(
       '#type' => 'textfield',
       '#title' => t('Placeholder text'),
+      '#description' => t("Enter placeholder text."),
       '#default_value' => $settings->getComponentPlaceholderTextById($cid),
       '#size' => 24,
       '#prefix' =>'<div class="placeholder">',
       '#suffix' => '</div>',
-      '#attributes' => array('placeholder' => t('Start typing a postcode, street or address')),
     );
   }
   $mode_links = array(
@@ -241,7 +241,8 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
       $indents . filter_xss($component['name']),
       drupal_render($form['components'][$cid]['group']),
       drupal_render($form['components'][$cid]['field']),
-      drupal_render($form['components'][$cid]['mode']) . drupal_render($form['components'][$cid]['placeholder']) ,
+      drupal_render($form['components'][$cid]['mode']),
+      drupal_render($form['components'][$cid]['placeholder']) ,
     );
   }
   $rows[] = array('data' => $row_data, 'class' => $row_class, 'data-cid' => $cid);
