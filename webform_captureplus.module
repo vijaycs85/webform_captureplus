@@ -267,7 +267,7 @@ function webform_captureplus_get_settings($nid) {
       $list[$key] = variable_get($variable, NULL);
     }
     if (array_filter($list)) {
-      $messages = new WebformCapturePlusMessageCatalogue($language->language, ['messages' => $list]);
+      $messages = new WebformCapturePlusMessageCatalogue($language->language, array('messages' => $list));
       $settings->setMessages($messages);
     }
     return $settings;
