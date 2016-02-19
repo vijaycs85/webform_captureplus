@@ -307,8 +307,9 @@ function webform_captureplus_form_submit($form, &$form_state) {
       }
     }
   }
+
   $settings['fields'] = $fields;
-  $settings['config'] = array_filter($form_state['values']['settings']);
+  $settings['config'] = array_filter($form_state['values']['settings']['autocomplete']);
   $storage_key = 'webform_captureplus_settings_' . $node->nid;
 
   // Clean existing settings.
