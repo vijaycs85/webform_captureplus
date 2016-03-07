@@ -103,7 +103,10 @@ function webform_captureplus_form($form, $form_state, $node) {
   );
 
   $options = array();
-  $captureplus_fields = variable_get('webform_captureplus_allowed_fields', array());
+  $captureplus_fields = array_filter(variable_get('webform_captureplus_allowed_fields', array()));
+  if (isset($captureplus_fields[WEBFORM_CAPTUREPLUS_EMPTY_FIELD])) {
+    $captureplus_fields[WEBFORM_CAPTUREPLUS_EMPTY_FIELD] = t('Empty (for search only field)');
+  }
   $mode_options = WebformCapturePlusSettings::getModeOptions();
   $group_options = WebformCapturePlusSettings::getGroupOptions();
 
@@ -129,7 +132,7 @@ function webform_captureplus_form($form, $form_state, $node) {
       '#type' => 'select',
       '#title' => t('Capture+ field'),
       '#default_value' => $settings->getComponentFieldById($cid),
-      '#options' => array_filter($captureplus_fields),
+      '#options' => $captureplus_fields,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );

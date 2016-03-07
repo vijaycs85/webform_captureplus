@@ -1,4 +1,5 @@
 <?php
+define('WEBFORM_CAPTUREPLUS_EMPTY_FIELD', 'Field20');
 
 /**
  * @file
@@ -145,7 +146,10 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
 
   $fields = webform_captureplus_get_field_mappings();
   $field_options = array_combine($fields, $fields);
-  ksort($field_options);
+
+  // Update label for empty field.
+  $field_options[WEBFORM_CAPTUREPLUS_EMPTY_FIELD] = t('Empty (for search only field)');
+  asort($field_options);
 
   $default_fields = array(
     'Id',
@@ -158,6 +162,7 @@ function webform_captureplus_form_webform_admin_settings_alter(&$form, &$form_st
     'CountryIso3',
     'CountryIsoNumber',
     'CountryName',
+    'Field20',
   );
 
   $form['captureplus'] = array(
