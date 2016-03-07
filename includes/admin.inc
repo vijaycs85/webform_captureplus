@@ -144,6 +144,16 @@ function webform_captureplus_form($form, $form_state, $node) {
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
     );
+    $form['components'][$cid]['placeholder'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Placeholder text'),
+      '#description' => t("Enter placeholder text."),
+      '#default_value' => $settings->getComponentPlaceholderTextById($cid),
+      '#size' => 24,
+      '#prefix' =>'<div class="placeholder">',
+      '#suffix' => '</div>',
+    );
+
   }
   $mode_links = array(
     t('<strong>Default</strong>: Uses the field as search field and populate value of mapped Capture+ field.'),
@@ -180,7 +190,7 @@ function webform_captureplus_form($form, $form_state, $node) {
   $form['warning'] = array(
     '#weight' => -1,
   );
-
+  $form['#attached']['js'][] = drupal_get_path('module', 'webform_captureplus') . '/js/webform_captureplus.admin.js';
   return $form;
 }
 
@@ -203,6 +213,7 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
   unset($form['components'][$cid]['group']['#title']);
   unset($form['components'][$cid]['field']['#title']);
   unset($form['components'][$cid]['mode']['#title']);
+  unset($form['components'][$cid]['placeholder']['#title']);
 
   // Add special classes for weight and parent fields.
   $form['components'][$cid]['cid']['#attributes']['class'] = array('webform-cid');
@@ -225,12 +236,14 @@ function _webform_captureplus_form_rows($node, $cid, $component, $level, &$form,
     $row_data[] = array('data' => '');
     $row_data[] = array('data' => '');
     $row_data[] = array('data' => '');
+    $row_data[] = array('data' => '');
   }
   else {
     // Add each component to a table row.
     $row_data[] = array('data' => drupal_render($form['components'][$cid]['group']), 'class' => array('select'));
     $row_data[] = array('data' => drupal_render($form['components'][$cid]['field']), 'class' => array('select'));
-    $row_data[] = array('data' => drupal_render($form['components'][$cid]['mode']), 'class' => array('select'));
+    $row_data[] = array('data' => drupal_render($form['components'][$cid]['mode']), 'class' => array('select', 'mode'));
+    $row_data[] = array('data' => drupal_render($form['components'][$cid]['placeholder']));
   }
   $rows[] = array('data' => $row_data, 'class' => array(), 'data-cid' => $cid);
   if (isset($component['children']) && is_array($component['children'])) {
@@ -281,6 +294,7 @@ function webform_captureplus_form_validate($form, &$form_state) {
 function webform_captureplus_form_submit($form, &$form_state) {
   $node = node_load($form_state['values']['nid']);
   $fields = array();
+  $placeholder_modes = WebformCapturePlusSettings::getModesWithPlaceholder();
   foreach ($form_state['values']['components'] as $cid => $component) {
     if (!empty($component['field']) && !empty($component['mode'])) {
       $fields[$component['cid']] = array(
@@ -288,6 +302,9 @@ function webform_captureplus_form_submit($form, &$form_state) {
         'mode' => $component['mode'],
         'group' => $component['group'],
       );
+    }
+    if (in_array($component['mode'], array_keys($placeholder_modes))) {
+      $fields[$component['cid']]['placeholder'] = $component['placeholder'];
     }
   }
   $settings['fields'] = $fields;

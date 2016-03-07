@@ -8,7 +8,7 @@ function template_preprocess_webform_captureplus_form(&$variables) {
   $form = $variables['form'];
   $node = $form['#node'];
 
-  $header = array(t('Field'), t('Capture+ group'), t('Capture+ field'), t('Mode'));
+  $header = array(t('Field'), t('Capture+ group'), t('Capture+ field'), t('Mode'), t('Placeholder text'));
   $rows = array();
   if (!empty($node->webform['components'])) {
     $component_tree = array();
