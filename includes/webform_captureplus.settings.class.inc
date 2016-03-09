@@ -83,23 +83,9 @@ class WebformCapturePlusSettings {
         'element' => $elements_name[$cid],
         'field' => $this->getComponentFieldById($cid),
         'mode' => $this->getComponentModeById($cid),
-        'placeholder' => $this->getComponentPlaceholderTextById($cid),
       );
     }
     return $settings;
-  }
-  /**
-   * @param $elements_name
-   * @return array
-   */
-  public function getPlaceholderByGroup($elements_name) {
-    $settings = array();
-    foreach ($this->getFields() as $cid => $field) {
-      if ($placeholder = $this->getComponentPlaceholderTextById($cid)) {
-        $settings[$this->getComponentGroupNameById($cid)][$elements_name[$cid]] = $placeholder;
-      }
-    }
-    return array_filter($settings);
   }
 
   /**
@@ -148,17 +134,6 @@ class WebformCapturePlusSettings {
     return NULL;
   }
 
-  /**
-   * @param $cid
-   * @return int|null
-   */
-  public function getComponentPlaceholderTextById($cid) {
-    if (isset($this->fields[$cid]) && isset($this->fields[$cid]['placeholder'])) {
-      // Capture+ expects mode as integer.
-      return $this->fields[$cid]['placeholder'];
-    }
-    return NULL;
-  }
   /**
    * @return array
    */
@@ -216,18 +191,6 @@ class WebformCapturePlusSettings {
   }
 
   /**
-   * @param $key
-   * @param string $language
-   * @return null
-   */
-  public function getMessageByKey($key, $language = 'en') {
-    if (isset($this->messages[$language][$key])) {
-      return $this->messages[$language][$key];
-    }
-    return NULL;
-  }
-
-  /**
    * @return \WebformCapturePlusMessageCatalogueInterface
    */
   public function getMessages() {
@@ -262,18 +225,6 @@ class WebformCapturePlusSettings {
       0 => 'None',
       4 => 'Preserve',
       8 => 'Country',
-    );
-  }
-
-  /**
-   * Provides mode list.
-   *
-   * @return array
-   */
-  public static function getModesWithPlaceholder() {
-    return  array(
-      3 => 'Default',
-      1 => 'Search',
     );
   }
 

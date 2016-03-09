@@ -86,7 +86,6 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
       _webform_captureplus_get_elements_name($form['submitted'], $elements_name, $name);
 
       $field_group = $settings->getFieldsByGroup($elements_name);
-      $placeholders = $settings->getPlaceholderByGroup($elements_name);
       $config = $settings->getConfigAsArray() + array('key' => variable_get('webform_captureplus_key', NULL));
       $message_catalogue = $settings->getMessages();
 
@@ -103,8 +102,7 @@ function webform_captureplus_form_alter(&$form, $form_state, $form_id) {
           $js_settings[$key] = array_filter(array(
               'fields' => $fields,
               'messages' => $messages,
-              'header' => $header,
-              'placeholders' => $placeholders[$key],
+              'header' => $header
             )) + $config;
         }
       }
