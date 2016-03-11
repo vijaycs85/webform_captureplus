@@ -168,7 +168,7 @@ function webform_captureplus_form($form_state, $node) {
 
   $params = array(
     '!doc_link' => url('http://www.postcodeanywhere.co.uk/capture-plus/reference/2.20/', array('external' => TRUE)),
-    '!settings' => url('admin/config/content/webform'),
+    '!settings' => url('admin/settings/webform'),
   );
   $links = array(
     t('<strong>Group</strong>: Group allows to create multiple Capture+ look up elements in same form.'),
