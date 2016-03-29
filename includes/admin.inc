@@ -125,21 +125,19 @@ function webform_captureplus_form($form_state, $node) {
       '#type' => 'select',
       '#title' => t('Capture+ group'),
       '#default_value' => $settings->getComponentGroupById($cid),
-      '#options' => array_merge(array('' => t('Select')), $group_options),
+      '#options' => array('' => t('Select')) + $group_options,
     );
     $form['components'][$cid]['field'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ field'),
       '#default_value' => $settings->getComponentFieldById($cid),
-      '#options' => array_merge(array('' => t('Select')), $captureplus_fields),
+      '#options' => array('' => t('Select')) + $captureplus_fields,
     );
     $form['components'][$cid]['mode'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ mode'),
       '#default_value' => $settings->getComponentModeById($cid),
-      '#options' => $mode_options,
-      '#empty_option' => t('Select'),
-      '#empty_value' => NULL,
+      '#options' => array('' => t('Select')) + $mode_options,
       '#attributes' => array('style' => 'float: left; margin-right:5px'),
       '#prefix' =>'<div class="mode">',
       '#suffix' => '</div>',
