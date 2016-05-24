@@ -9,6 +9,8 @@
             if(settings_id.substring(0, 20) == 'webform_captureplus_') {
                 $.each(settings, function(key, info){
                     info.control = new pca.Address(info.fields, info);
+                    // Display inline message when address not found.
+                    info.inlineMessages = true;
                     attachMessages(info);
                     subscribeDisplayEvent(info);
                 });
@@ -25,7 +27,7 @@
             if (info.messages != null && info.messages != undefined) {
                 $.each(info.messages, function(language_id, messages) {
                     $.each(messages, function(message_id, message){
-                        info.control.messages[language_id][message_id] = message;
+                        pca.messages[language_id][message_id] = message;
                     });
                 });
             }
