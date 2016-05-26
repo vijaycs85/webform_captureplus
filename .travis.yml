@@ -34,7 +34,7 @@ before_script:
   - ls -al
   - pwd
   - cd -
-  - ln -s $(readlink -e $(cd -)) webform_captureplus/drupal/sites/all/modules/webform_captureplus
+  - ln -s $(cd -) webform_captureplus/drupal/sites/all/modules/webform_captureplus
   - cd webform_captureplus/drupal
   - drush --yes pm-enable webform_captureplus
 
