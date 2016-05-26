@@ -9,8 +9,6 @@
             if(settings_id.substring(0, 20) == 'webform_captureplus_') {
                 $.each(settings, function(key, info){
                     info.control = new pca.Address(info.fields, info);
-                    // Display inline message when address not found.
-                    info.inlineMessages = true;
                     attachMessages(info);
                     subscribeDisplayEvent(info);
                 });
