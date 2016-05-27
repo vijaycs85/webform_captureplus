@@ -30,7 +30,6 @@ before_script:
   - mysql -e 'create database webform_captureplus'
   - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes core-quick-drupal --core=drupal-7.x --profile=testing --no-server --db-url=mysql://root:@127.0.0.1/webform_captureplus --enable=simpletest webform_captureplus
   
-  - which php
   # reference and enable webform_captureplus in build site
   - ln -s $(readlink -e $(cd -)) webform_captureplus/drupal-7.x/sites/all/modules/webform_captureplus
   - cd webform_captureplus/drupal-7.x
@@ -40,4 +39,4 @@ before_script:
   - drush runserver 127.0.0.1:8080 &
   - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
 
-script: php scripts/run-tests.sh  --url http://127.0.0.1:8080 --class WebformCapturePlusAdminUITestCase --php `which php`
+script: php scripts/run-tests.sh  --url http://127.0.0.1:8080 --file sites/all/modules/webform_captureplus/tests/webform_captureplus_ui.test --php `which php`
