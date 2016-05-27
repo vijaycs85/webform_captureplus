@@ -33,7 +33,7 @@ before_script:
   - ls -al webform_captureplus/drupal-7.x/sites/all/modules
   # reference and enable webform_captureplus in build site
   - ln -s $(readlink -e $(cd -)) webform_captureplus/drupal-7.x/sites/all/modules/webform_captureplus
-  - cd webform_captureplus/drupal
+  - cd webform_captureplus/drupal-7.x
   - drush --yes pm-enable webform_captureplus
 
   # start a web server on port 8080, run in the background; wait for initialization
