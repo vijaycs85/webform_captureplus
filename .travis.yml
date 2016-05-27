@@ -30,7 +30,7 @@ before_script:
   - mysql -e 'create database webform_captureplus'
   - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes core-quick-drupal --core=drupal-7.x --profile=testing --no-server --db-url=mysql://root:@127.0.0.1/webform_captureplus --enable=simpletest webform_captureplus
   
-  - ls -al webform_captureplus/drupal-7.x/sites/all/modules
+  - which php
   # reference and enable webform_captureplus in build site
   - ln -s $(readlink -e $(cd -)) webform_captureplus/drupal-7.x/sites/all/modules/webform_captureplus
   - cd webform_captureplus/drupal-7.x
