@@ -65,6 +65,12 @@ function webform_captureplus_form($form_state, $node) {
     '#description' => t('Updates the input field with the current search text.'),
     '#default_value' => $settings->getConfigByName('set_cursor', TRUE),
   );
+  $form['settings']['autocomplete']['inline_message'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display message inline'),
+    '#description' => t('Shows messages within the list rather than above the search field.'),
+    '#default_value' => $settings->getConfigByName('inline_message', TRUE),
+  );
   $form['settings']['autocomplete']['countries'] = array(
     '#type' => 'textfield',
     '#title' => t('Countries'),

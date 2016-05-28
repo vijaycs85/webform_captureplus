@@ -1,13 +1,12 @@
 name = Webform Capture+
 description = Provides Capture+ integration for webform components.
 core = 6.x
-
+package = Webform
 dependencies[] = webform
 dependencies[] = autoload
 
 ; Tests
 files[] = tests/webform_captureplus_ui.test
-files[] = tests/webform_captureplus.webform_base.test
 
 ; Classes & interfaces.
 files[] = includes/webform_captureplus.settings.class.inc
