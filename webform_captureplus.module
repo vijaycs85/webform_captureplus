@@ -248,7 +248,7 @@ function webform_captureplus_add_js(&$form, $form_state) {
 
   // Including Capture+ js and css.
   $capture_plus_domain = variable_get('webform_captureplus_domain', 'services.postcodeanywhere.co.uk');
-  $capture_plus_version = variable_get('webform_captureplus_version', '3.20');
+  $capture_plus_version = variable_get('webform_captureplus_version', '3.50');
   drupal_add_js("//$capture_plus_domain/js/address-$capture_plus_version.min.js", 'module', 'header', FALSE, TRUE, FALSE);
   drupal_set_html_head('<link type="text/css" rel="stylesheet" media="all" href="//'. $capture_plus_domain .'/css/address-'. $capture_plus_version .'.min.css" />');
 
