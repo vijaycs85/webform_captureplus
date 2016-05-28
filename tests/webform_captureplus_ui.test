@@ -8,7 +8,7 @@
 /**
  * Class ActionsConfigurationTestCase
  */
-class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
+class WebformCapturePlusAdminUITestCase extends WebformTestCase {
   protected $modules = array('webform', 'webform_captureplus');
   public static function getInfo() {
     return array(
@@ -24,6 +24,21 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
    */
   function setUp($added_modules = array()) {
     parent::setUp(array_merge($added_modules, array('webform_captureplus')));
+    // Create a webform admin that will do all node creation.
+    $permissions = array(
+      'access content',
+      'administer nodes',
+      'create webform content',
+      'edit webform components',
+      'edit any webform content',
+      'access all webform results',
+      'edit all webform submissions',
+      'administer site configuration',
+      'delete all webform submissions',
+      'administer webform capture plus',
+    );
+    $this->webform_users['admin'] = $this->drupalCreateUser($permissions);
+    user_save($this->webform_users['admin']);
   }
 
 
@@ -74,6 +89,17 @@ class WebformCapturePlusAdminUITestCase extends WebformCapturePlusWebTestBase {
     $node = $this->testWebformForm();
     $this->drupalGet('node/' . $node->nid . '/webform/captureplus');
     $this->assertResponse(200);
+
+    // Check for configuration elements.
+    $this->assertFieldByName('settings[key]');
+    $this->assertFieldByName('settings[set_cursor]');
+    $this->assertFieldByName('settings[inline_message]');
+    $this->assertFieldByName('settings[countries]');
+    $this->assertFieldByName('settings[bar_visible]');
+    $this->assertFieldByName('settings[culture]');
+    $this->assertFieldByName('settings[list_width]');
+    $this->assertFieldByName('settings[list_height]');
+    $this->assertText('Notes');
   }
 
 }

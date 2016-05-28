@@ -25,7 +25,7 @@
             if (info.messages != null && info.messages != undefined) {
                 $.each(info.messages, function(language_id, messages) {
                     $.each(messages, function(message_id, message){
-                        info.control.messages[language_id][message_id] = message;
+                        pca.messages[language_id][message_id] = message;
                     });
                 });
             }
