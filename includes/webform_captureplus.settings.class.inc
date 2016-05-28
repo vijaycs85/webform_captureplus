@@ -201,6 +201,7 @@ class WebformCapturePlusSettings {
 
     $config = array(
       'setCursor' => $this->getConfigByName('set_cursor', TRUE),
+      'inlineMessages' =>  $this->getConfigByName('inline_message', TRUE),
       'countries' => array('codesList' =>  $this->getConfigByName('countries', 'GBR')),
       'bar' => array('visible' =>  $this->getConfigByName('bar_visible', FALSE)),
       'list' => $list,
