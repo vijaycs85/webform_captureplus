@@ -2,14 +2,14 @@
 
 ## Build
 
-[![Simpletest](https://travis-ci.org/vijaycs85/webform_captureplus.svg?branch=7.x-1.x)](https://travis-ci.org/vijaycs85/webform_captureplus)
+[![Simpletest](https://travis-ci.org/vijaycs85/webform_captureplus.svg?branch=6.x-1.x)](https://travis-ci.org/vijaycs85/webform_captureplus)
 
 ## Overview
 Provides [Capture+ address finder](http://www.pcapredict.com/en-gb/address-capture-software/) integration to webform. Supports all 3 formats (Separate Search Field, Bound fields and Single line).
 
 ## Installation
 
-Download & install the module [as usual](https://www.drupal.org/documentation/install/modules-themes/modules-7).
+Download & install the module [as usual](https://www.drupal.org/documentation/install/modules-themes/modules-5-6).
 
 ## Configurations
 
