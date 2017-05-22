@@ -22,7 +22,7 @@
          * @param info
          */
         function attachMessages(info) {
-            if (info.messages != null && info.messages != undefined) {
+            if (info.hasOwnProperty('messages') && info.messages !== null) {
                 $.each(info.messages, function(language_id, messages) {
                     $.each(messages, function(message_id, message){
                         pca.messages[language_id][message_id] = message;
@@ -38,7 +38,7 @@
          */
         function subscribeDisplayEvent(info) {
             // Display header message, if any.
-            if (info.header != null && info.header != undefined) {
+            if (info.hasOwnProperty('header') && info.header !== null) {
                 info.control.listen('display', function (items, attributes) {
                     $.each(info.header, function(header_id, message) {
                         info.control.message(pca.formatLine(attributes, message));
