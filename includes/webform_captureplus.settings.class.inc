@@ -55,7 +55,7 @@ class WebformCapturePlusSettings {
   public static function createFromNid($nid, $default_value = array()) {
     $key = WebformCapturePlusSettings::VARIABLE_PREFIX .$nid;
     $raw = variable_get($key, $default_value) +  array('fields' => array(), 'config' => array(), 'messages' => array());
-    if (is_array($raw['fields'])) {
+    if (is_array($raw['fields']) && !empty($raw['fields'])) {
       $object =  new static($raw['fields']);
       if (isset($raw['config'])) {
         $object->setConfig($raw['config']);
