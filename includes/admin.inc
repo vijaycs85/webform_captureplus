@@ -61,7 +61,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#type' => 'checkbox',
     '#title' => t('Replace search box text on focus'),
     '#description' => t('Updates the input field with the current search text.'),
-    '#default_value' => $settings->getConfigByName('set_cursor', TRUE),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('set_cursor', TRUE) : TRUE,
   );
   $form['settings']['inline_message'] = array(
     '#type' => 'checkbox',
@@ -73,7 +73,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#type' => 'textfield',
     '#title' => t('Countries'),
     '#description' => t('Countries to allow Capture+ lookup.'),
-    '#default_value' => $settings->getConfigByName('countries', 'GBR'),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('countries', 'GBR') : 'GBR',
   );
   $form['settings']['bar_visible'] = array(
     '#type' => 'checkbox',
@@ -81,13 +81,13 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#description' => t('Country selection bar on Capture+ lookup autocomplete box footer.'),
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' => $settings->getConfigByName('bar_visible', FALSE),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('bar_visible', FALSE) : FALSE,
   );
   $form['settings']['culture'] = array(
     '#type' => 'textfield',
     '#title' => t('Language'),
     '#description' => t('The address suggestion language.'),
-    '#default_value' => $settings->getConfigByName('culture', 'EN-GB'),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('culture', 'EN-GB') : 'EN-GB',
     '#size' => 10,
     '#maxlength' => 10,
   );
@@ -97,7 +97,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#description' => t('Width of Capture+ lookup autocomplete box. Leave it blank to adjust the width depending on the result.'),
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' =>  $settings->getConfigByName('list_width', NULL),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('list_width', NULL) : NULL,
   );
   $form['settings']['list_height'] = array(
     '#type' => 'textfield',
@@ -105,7 +105,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#description' => t('Height of Capture+ lookup autocomplete box. Leave it blank to adjust the height depending on the result.'),
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' => $settings->getConfigByName('list_height', NULL),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('list_height', NULL) : NULL,
   );
 
   $options = array();
@@ -129,7 +129,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     $form['components'][$cid]['group'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ group'),
-      '#default_value' => $settings->getComponentGroupById($cid),
+      '#default_value' => !is_null($settings) ? $settings->getComponentGroupById($cid) : '',
       '#options' => $group_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
@@ -137,7 +137,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     $form['components'][$cid]['field'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ field'),
-      '#default_value' => $settings->getComponentFieldById($cid),
+      '#default_value' => !is_null($settings) ? $settings->getComponentFieldById($cid) : '',
       '#options' => $captureplus_fields,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
@@ -145,7 +145,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     $form['components'][$cid]['mode'] = array(
       '#type' => 'select',
       '#title' => t('Capture+ mode'),
-      '#default_value' => $settings->getComponentModeById($cid),
+      '#default_value' => !is_null($settings) ? $settings->getComponentModeById($cid) : '',
       '#options' => $mode_options,
       '#empty_option' => t('Select'),
       '#empty_value' => NULL,
