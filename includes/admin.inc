@@ -67,7 +67,7 @@ function webform_captureplus_form($form, $form_state, $node) {
     '#type' => 'checkbox',
     '#title' => t('Display message inline'),
     '#description' => t('Shows messages within the list rather than above the search field.'),
-    '#default_value' => $settings->getConfigByName('inline_message', TRUE),
+    '#default_value' => !is_null($settings) ? $settings->getConfigByName('inline_message', TRUE) : TRUE,
   );
   $form['settings']['countries'] = array(
     '#type' => 'textfield',
